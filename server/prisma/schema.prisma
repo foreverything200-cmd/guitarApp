@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Song {
+  id              String         @id @default(uuid())
+  title           String
+  artistId        String
+  artist          Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  category        String         // "jewish" | "non-jewish"
+  capoOriginal    Int            @default(0)
+  capoPreferred   Int            @default(0)
+  albumCoverPath  String?
+  youtubeUrl      String?
+  content         String         // Chord+lyrics in bracket notation: "[Am]Lyrics here [G]more lyrics"
+  chordSheetImage String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  playlists       PlaylistSong[]
+}
+
+model Artist {
+  id        String   @id @default(uuid())
+  name      String
+  photoPath String?
+  category  String   // "jewish" | "non-jewish"
+  songs     Song[]
+  createdAt DateTime @default(now())
+}
+
+model Playlist {
+  id        String         @id @default(uuid())
+  name      String
+  category  String         // "jewish" | "non-jewish" | "mixed"
+  songs     PlaylistSong[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model PlaylistSong {
+  id         String   @id @default(uuid())
+  playlistId String
+  songId     String
+  order      Int
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  song       Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, songId])
+}
+
+model ChordStatus {
+  id        String @id @default(uuid())
+  chordName String @unique
+  status    String @default("none") // "known" | "learning" | "none"
+}
+
+model Setting {
+  key   String @id
+  value String
+}
